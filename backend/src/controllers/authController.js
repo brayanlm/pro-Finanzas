@@ -1,4 +1,5 @@
 import { userRepository } from '../repositories/index.js';
+import Category from '../models/Category.js';
 import { hashPassword, verifyPassword, validatePasswordStrength } from '../utils/password.js';
 import { generateAccessToken, generateResetToken } from '../utils/jwt.js';
 import { sendPasswordResetEmail } from '../utils/email.js';
@@ -30,7 +31,9 @@ export const register = async (req, res, next) => {
       emailVerified: false
     });
 
-    await userRepository.seedDefaults(user._id);
+    const defaults = Category.getDefaultCategories();
+    const docs = defaults.map(c => ({ ...c, userId: user._id, isDefault: true }));
+    await Category.insertMany(docs, { ordered: false });
 
     const token = generateAccessToken(user);
 

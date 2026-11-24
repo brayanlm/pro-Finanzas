@@ -86,11 +86,10 @@ userSchema.methods.toPublicJSON = function() {
   };
 };
 
-userSchema.pre('save', function(next) {
+userSchema.pre('save', async function() {
   if (this.isModified('email')) {
     this.email = this.email.toLowerCase().trim();
   }
-  next();
 });
 
 export default mongoose.model('User', userSchema);

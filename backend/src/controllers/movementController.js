@@ -9,7 +9,7 @@ export const listMovements = async (req, res, next) => {
   try {
     const { page, limit, sort, type, categoryId, accountId, startDate, endDate, search } = req.query;
 
-    const filters = {};
+    const filters = { userId: req.user.id };
     if (type) filters.type = type;
     if (categoryId) filters.categoryId = categoryId;
     if (accountId) filters.accountId = accountId;
@@ -99,7 +99,7 @@ export const createMovement = async (req, res, next) => {
       const movementDate = new Date(date);
       const year = movementDate.getFullYear();
       const month = movementDate.getMonth() + 1;
-      const budget = await budgetRepository.upsert(req.user.id, categoryId, year, month, { $inc: { spent: amount } });
+      const _budget = await budgetRepository.upsert(req.user.id, categoryId, year, month, { $inc: { spent: amount } });
     }
 
     await session.commitTransaction();

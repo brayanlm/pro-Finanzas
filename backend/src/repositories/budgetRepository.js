@@ -1,5 +1,6 @@
 import { BaseRepository } from './BaseRepository.js';
 import Budget from '../models/Budget.js';
+import mongoose from 'mongoose';
 
 class BudgetRepository extends BaseRepository {
   constructor() {
@@ -28,7 +29,7 @@ class BudgetRepository extends BaseRepository {
 
   async getWithCategory(userId, year, month) {
     const pipeline = [
-      { $match: { userId: new Budget.Types.ObjectId(userId), year, month } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId), year, month } },
       { $lookup: { from: 'categories', localField: 'categoryId', foreignField: '_id', as: 'category' } },
       { $unwind: '$category' },
       { $project: {
@@ -52,7 +53,7 @@ class BudgetRepository extends BaseRepository {
 
   async getSummary(userId, year, month) {
     const pipeline = [
-      { $match: { userId: new Budget.Types.ObjectId(userId), year, month } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId), year, month } },
       { $group: {
         _id: null,
         totalBudgeted: { $sum: '$amount' },

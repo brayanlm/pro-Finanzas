@@ -6,7 +6,6 @@ import {
   deactivateUser,
   getSystemStats
 } from '../controllers/adminController.js';
-import { validate } from '../middlewares/validationMiddleware.js';
 import { authenticate } from '../middlewares/authMiddleware.js';
 import { requireAdmin } from '../middlewares/rbacMiddleware.js';
 

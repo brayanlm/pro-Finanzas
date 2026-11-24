@@ -1,7 +1,7 @@
 import { AppError } from '../utils/AppError.js';
 import { getConfig } from '../config/env.js';
 
-export const errorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res, _next) => {
   const config = getConfig();
   const isDev = config.NODE_ENV === 'development';
 
@@ -33,9 +33,9 @@ export const errorHandler = (err, req, res, next) => {
     error = new AppError('Token expirado', 401, 'TOKEN_EXPIRED');
   }
 
-  const statusCode = error.statusCode || 500;
-  const code = error.code || 'INTERNAL_ERROR';
-  const message = error.isOperational ? error.message : 'Error interno del servidor';
+const statusCode = error.statusCode || 500;
+const _code = error.code || 'INTERNAL_ERROR';
+const message = error.isOperational ? error.message : 'Error interno del servidor';
   const details = error.details || null;
 
   if (!error.isOperational) {

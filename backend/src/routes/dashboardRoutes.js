@@ -3,7 +3,6 @@ import {
   getDashboardSummary,
   getDashboardCharts
 } from '../controllers/dashboardController.js';
-import { validate } from '../middlewares/validationMiddleware.js';
 import { authenticate } from '../middlewares/authMiddleware.js';
 import { injectOwnerFilter } from '../middlewares/ownerFilterMiddleware.js';
 

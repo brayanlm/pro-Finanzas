@@ -1,6 +1,4 @@
 import { movementRepository } from '../repositories/index.js';
-import { categoryRepository } from '../repositories/index.js';
-import { accountRepository } from '../repositories/index.js';
 import { AppError } from '../utils/AppError.js';
 
 export const exportReport = async (req, res, next) => {
@@ -81,7 +79,7 @@ const generatePDF = async (res, movements, options) => {
     doc.moveDown(0.5);
     doc.font('Helvetica');
 
-    movements.slice(0, 50).forEach((m, idx) => {
+    movements.slice(0, 50).forEach((m, _idx) => {
       if (doc.y > 700) {
         doc.addPage();
         y = doc.y;

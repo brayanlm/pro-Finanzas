@@ -1,0 +1,102 @@
+import '@testing-library/jest-dom';
+import { vi } from 'vitest';
+
+vi.mock('lucide-react', () => ({
+  ...vi.requireActual('lucide-react'),
+  // Mock all icons as simple components
+  LayoutDashboard: () => <svg data-testid="icon-layout-dashboard" />,
+  History: () => <svg data-testid="icon-history" />,
+  Tag: () => <svg data-testid="icon-tag" />,
+  Wallet: () => <svg data-testid="icon-wallet" />,
+  Target: () => <svg data-testid="icon-target" />,
+  Settings: () => <svg data-testid="icon-settings" />,
+  BarChart2: () => <svg data-testid="icon-bar-chart" />,
+  ChevronLeft: () => <svg data-testid="icon-chevron-left" />,
+  ChevronRight: () => <svg data-testid="icon-chevron-right" />,
+  ChevronUp: () => <svg data-testid="icon-chevron-up" />,
+  ChevronDown: () => <svg data-testid="icon-chevron-down" />,
+  ChevronsLeft: () => <svg data-testid="icon-chevrons-left" />,
+  ChevronsRight: () => <svg data-testid="icon-chevrons-right" />,
+  ChevronsUpDown: () => <svg data-testid="icon-chevrons-up-down" />,
+  Plus: () => <svg data-testid="icon-plus" />,
+  Edit: () => <svg data-testid="icon-edit" />,
+  Trash2: () => <svg data-testid="icon-trash" />,
+  Search: () => <svg data-testid="icon-search" />,
+  Filter: () => <svg data-testid="icon-filter" />,
+  Download: () => <svg data-testid="icon-download" />,
+  FileText: () => <svg data-testid="icon-file-text" />,
+  Eye: () => <svg data-testid="icon-eye" />,
+  EyeOff: () => <svg data-testid="icon-eye-off" />,
+  Mail: () => <svg data-testid="icon-mail" />,
+  Lock: () => <svg data-testid="icon-lock" />,
+  User: () => <svg data-testid="icon-user" />,
+  LogOut: () => <svg data-testid="icon-log-out" />,
+  Bell: () => <svg data-testid="icon-bell" />,
+  Moon: () => <svg data-testid="icon-moon" />,
+  Sun: () => <svg data-testid="icon-sun" />,
+  Palette: () => <svg data-testid="icon-palette" />,
+  Globe: () => <svg data-testid="icon-globe" />,
+  Save: () => <svg data-testid="icon-save" />,
+  CreditCard: () => <svg data-testid="icon-credit-card" />,
+  AlertTriangle: () => <svg data-testid="icon-alert-triangle" />,
+  CheckCircle: () => <svg data-testid="icon-check-circle" />,
+  AlertCircle: () => <svg data-testid="icon-alert-circle" />,
+  XCircle: () => <svg data-testid="icon-x-circle" />,
+  X: () => <svg data-testid="icon-x" />,
+  ArrowLeft: () => <svg data-testid="icon-arrow-left" />,
+  ArrowUpRight: () => <svg data-testid="icon-arrow-up-right" />,
+  ArrowDownRight: () => <svg data-testid="icon-arrow-down-right" />,
+  DollarSign: () => <svg data-testid="icon-dollar-sign" />,
+  TrendingUp: () => <svg data-testid="icon-trending-up" />,
+  TrendingDown: () => <svg data-testid="icon-trending-down" />,
+  Minus: () => <svg data-testid="icon-minus" />,
+  Banknote: () => <svg data-testid="icon-banknote" />,
+  Building2: () => <svg data-testid="icon-building-2" />,
+  PiggyBank: () => <svg data-testid="icon-piggy-bank" />,
+  RefreshCw: () => <svg data-testid="icon-refresh-cw" />,
+  Calendar: () => <svg data-testid="icon-calendar" />,
+  Utensils: () => <svg data-testid="icon-utensils" />,
+  Car: () => <svg data-testid="icon-car" />,
+  Home: () => <svg data-testid="icon-home" />,
+  Zap: () => <svg data-testid="icon-zap" />,
+  Gamepad2: () => <svg data-testid="icon-gamepad-2" />,
+  HeartPulse: () => <svg data-testid="icon-heart-pulse" />,
+  GraduationCap: () => <svg data-testid="icon-graduation-cap" />,
+  Briefcase: () => <svg data-testid="icon-briefcase" />,
+  Laptop: () => <svg data-testid="icon-laptop" />,
+  TrendingUp: () => <svg data-testid="icon-trending-up" />,
+  PlusCircle: () => <svg data-testid="icon-plus-circle" />,
+  ShoppingBag: () => <svg data-testid="icon-shopping-bag" />,
+  Gift: () => <svg data-testid="icon-gift" />,
+  Plane: () => <svg data-testid="icon-plane" />,
+  Train: () => <svg data-testid="icon-train" />,
+  Bus: () => <svg data-testid="icon-bus" />,
+  Bike: () => <svg data-testid="icon-bike" />,
+  Fuel: () => <svg data-testid="icon-fuel" />,
+  ParkingTicket: () => <svg data-testid="icon-parking-ticket" />,
+  Ticket: () => <svg data-testid="icon-ticket" />
+}));
+
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn()
+  }))
+});
+
+Object.defineProperty(window, 'localStorage', {
+  writable: true,
+  value: {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn()
+  }
+});

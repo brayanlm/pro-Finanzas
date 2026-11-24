@@ -1,7 +1,4 @@
-import { body, query, param } from 'express-validator';
-import { Types } from 'mongoose';
-
-const isValidObjectId = (value) => Types.ObjectId.isValid(value);
+import { body } from 'express-validator';
 
 export const registerValidators = [
   body('email').isEmail().normalizeEmail().withMessage('Email inválido'),

@@ -25,7 +25,9 @@ export const sanitizeQuery = (req, res, next) => {
     return sanitized;
   };
 
-  req.query = sanitize(req.query);
-  req.body = sanitize(req.body);
+  // No modificar req.query directamente (es getter en Express 5)
+  // En su lugar, sanitizar y usar en controladores via req.sanitizedQuery
+  req.sanitizedQuery = sanitize(req.query);
+  req.sanitizedBody = sanitize(req.body);
   next();
 };

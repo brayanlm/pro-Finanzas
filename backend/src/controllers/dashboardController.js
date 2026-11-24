@@ -1,7 +1,6 @@
 import { movementRepository } from '../repositories/index.js';
 import { accountRepository } from '../repositories/index.js';
 import { budgetRepository } from '../repositories/index.js';
-import { AppError } from '../utils/AppError.js';
 
 export const getDashboardSummary = async (req, res, next) => {
   try {
