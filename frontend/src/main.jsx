@@ -22,7 +22,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           pauseOnFocusLoss
           draggable
           pauseOnHover
-          theme="colored"
+          theme="light"
+          className="toast-container-custom"
+          toastClassName="rounded-2xl font-medium shadow-lg border border-border-light"
+          bodyClassName="text-sm"
         />
       </ToastProvider>
     </AuthProvider>

@@ -1,4 +1,6 @@
 import request from 'supertest';
+import mongoose from 'mongoose';
+import { safeCleanTestDatabase } from '../helpers/safeClean.js';
 import app from '../../src/app.js';
 import { connectDB, disconnectDB } from '../../src/config/database.js';
 import User from '../../src/models/User.js';
@@ -20,11 +22,7 @@ describe('Movement Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await User.deleteMany({});
-    await Category.deleteMany({});
-    await Account.deleteMany({});
-    await Movement.deleteMany({});
-    await Budget.deleteMany({});
+    await safeCleanTestDatabase(mongoose);
 
     const register1 = await request(app)
       .post('/api/v1/auth/register')
@@ -64,6 +62,20 @@ describe('Movement Integration Tests', () => {
     });
 
     test('creates expense movement', async () => {
+      // Preparación: dotar de saldo suficiente mediante una operación de ingreso válida.
+      await request(app)
+        .post('/api/v1/movements')
+        .set('Authorization', `Bearer ${token1}`)
+        .send({
+          type: 'income',
+          description: 'Saldo inicial para gasto',
+          amount: 1000,
+          categoryId: incomeCategory._id.toString(),
+          accountId: account._id.toString(),
+          date: '2024-01-15'
+        })
+        .expect(201);
+
       const res = await request(app)
         .post('/api/v1/movements')
         .set('Authorization', `Bearer ${token1}`)
@@ -79,6 +91,11 @@ describe('Movement Integration Tests', () => {
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.type).toBe('expense');
+
+      // Saldo final correcto (no negativo indebido); protección INSUFFICIENT_FUNDS intacta.
+      const updated = await Account.findById(account._id);
+      expect(updated.currentBalance).toBeCloseTo(1000 - 85.50, 2);
+      expect(updated.currentBalance).toBeGreaterThanOrEqual(0);
     });
 
     test('rejects mismatched category type', async () => {

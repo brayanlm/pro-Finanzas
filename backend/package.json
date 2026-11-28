@@ -1,104 +1,118 @@
 {
-  "name": "finanzas-backend",
-  "version": "1.0.0",
-  "description": "Backend API for Personal Finance Dashboard",
-  "main": "src/server.js",
-  "type": "module",
-  "scripts": {
-    "dev": "cross-env NODE_ENV=development nodemon src/server.js",
-    "start": "cross-env NODE_ENV=production node src/server.js",
-    "test": "cross-env NODE_ENV=test jest --coverage --detectOpenHandles",
-    "test:unit": "cross-env NODE_ENV=test jest tests/unit --coverage",
-    "test:integration": "cross-env NODE_ENV=test jest tests/integration --coverage",
-    "test:watch": "cross-env NODE_ENV=test jest --watch",
-    "lint": "eslint src/**/*.js",
-    "lint:fix": "eslint src/**/*.js --fix",
-    "format": "prettier --write \"src/**/*.js\"",
-    "db:seed": "node scripts/seed.js"
-  },
-  "keywords": [
-    "finanzas",
-    "personal-finance",
-    "api",
-    "express",
-    "mongodb"
-  ],
-  "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "cors": "^2.8.6",
-    "dotenv": "^18.0.10",
-    "express": "^5.3.0",
-    "express-rate-limit": "^8.7.5",
-    "express-validator": "^7.3.2",
-    "helmet": "^8.3.0",
-    "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.13.0",
-    "morgan": "^1.12.1",
-    "nodemailer": "^10.6.1",
-    "pdfkit": "^0.21.0",
-    "uuid": "^14.0.3",
-    "zod": "^4.6.7"
-  },
-  "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "cross-env": "^10.1.0",
-    "eslint": "^10.15.0",
-    "jest": "^30.5.2",
-    "nodemon": "^3.1.14",
-    "prettier": "^3.10.1",
-    "supertest": "^7.3.2"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "transform": {},
-    "moduleFileExtensions": [
-      "js",
-      "json"
-    ],
-    "testMatch": [
-      "**/tests/**/*.test.js"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.js",
-      "!src/server.js",
-      "!src/app.js"
-    ],
-    "coverageDirectory": "coverage",
-    "verbose": true
-  },
-  "eslintConfig": {
-    "env": {
-      "node": true,
-      "es2022": true,
-      "jest": true
+    "name": "finanzas-backend",
+    "version": "1.0.0",
+    "description": "Backend API for Personal Finance Dashboard",
+    "main": "src/server.js",
+    "type": "module",
+    "scripts": {
+        "dev": "cross-env NODE_ENV=development nodemon src/server.js",
+        "start": "cross-env NODE_ENV=production node src/server.js",
+        "test": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --detectOpenHandles --runInBand",
+        "test:unit": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js tests/unit --coverage",
+        "test:integration": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js tests/integration --coverage --runInBand",
+        "test:watch": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+        "lint": "eslint src/**/*.js",
+        "lint:fix": "eslint src/**/*.js --fix",
+        "format": "prettier --write \"src/**/*.js\"",
+        "db:seed": "node scripts/seed.js"
     },
-    "extends": [
-      "eslint:recommended"
+    "keywords": [
+        "finanzas",
+        "personal-finance",
+        "api",
+        "express",
+        "mongodb"
     ],
-    "parserOptions": {
-      "ecmaVersion": "latest",
-      "sourceType": "module"
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "bcryptjs": "^3.0.3",
+        "cors": "^2.8.6",
+        "dayjs": "^1.11.23",
+        "dotenv": "^18.0.10",
+        "exceljs": "^4.4.0",
+        "express": "^5.3.0",
+        "express-rate-limit": "^8.7.5",
+        "express-validator": "^7.3.2",
+        "helmet": "^8.3.0",
+        "jsonwebtoken": "^9.0.3",
+        "mongoose": "^9.13.0",
+        "morgan": "^1.12.1",
+        "nodemailer": "^10.6.1",
+        "pdfkit": "^0.21.0",
+        "uuid": "^14.0.3",
+        "zod": "^4.6.7"
     },
-    "rules": {
-      "no-unused-vars": [
-        "warn",
-        {
-          "argsIgnorePattern": "^_"
+    "devDependencies": {
+        "@types/jest": "^30.0.0",
+        "cross-env": "^10.1.0",
+        "eslint": "^10.15.0",
+        "jest": "^30.5.2",
+        "mongodb-memory-server": "^11.4.0",
+        "nodemon": "^3.1.14",
+        "prettier": "^3.10.1",
+        "supertest": "^7.3.2"
+    },
+    "jest": {
+        "testEnvironment": "node",
+        "transform": {},
+        "moduleFileExtensions": [
+            "js",
+            "json"
+        ],
+        "testMatch": [
+            "**/tests/**/*.test.js"
+        ],
+        "collectCoverageFrom": [
+            "src/**/*.js",
+            "!src/server.js",
+            "!src/app.js"
+        ],
+        "coverageDirectory": "coverage",
+        "verbose": true,
+        "setupFilesAfterEnv": [
+            "<rootDir>/tests/setup.js"
+        ],
+        "globalSetup": "<rootDir>/tests/globalSetup.js",
+        "globalTeardown": "<rootDir>/tests/globalTeardown.js",
+        "testTimeout": 20000
+    },
+    "eslintConfig": {
+        "env": {
+            "node": true,
+            "es2022": true,
+            "jest": true
+        },
+        "extends": [
+            "eslint:recommended"
+        ],
+        "parserOptions": {
+            "ecmaVersion": "latest",
+            "sourceType": "module"
+        },
+        "rules": {
+            "no-unused-vars": [
+                "warn",
+                {
+                    "argsIgnorePattern": "^_"
+                }
+            ],
+            "no-console": "off",
+            "prefer-const": "error",
+            "no-var": "error"
         }
-      ],
-      "no-console": "off",
-      "prefer-const": "error",
-      "no-var": "error"
+    },
+    "prettier": {
+        "semi": true,
+        "singleQuote": true,
+        "tabWidth": 2,
+        "trailingComma": "es5",
+        "printWidth": 100,
+        "bracketSpacing": true
+    },
+    "overrides": {
+        "exceljs": {
+            "uuid": "^11.1.1"
+        }
     }
-  },
-  "prettier": {
-    "semi": true,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "es5",
-    "printWidth": 100,
-    "bracketSpacing": true
-  }
 }

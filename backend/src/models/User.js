@@ -7,8 +7,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    maxlength: 255,
-    index: true
+    maxlength: 255
   },
   passwordHash: {
     type: String,
@@ -65,7 +64,6 @@ const userSchema = new mongoose.Schema({
   versionKey: false
 });
 
-userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ role: 1, isActive: 1 });
 
 userSchema.virtual('fullName').get(function() {

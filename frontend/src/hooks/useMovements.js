@@ -15,7 +15,7 @@ export const useMovements = (initialFilters = {}) => {
       const response = await movementApi.list(newFilters);
       setMovements(response.data.data);
       setMeta(response.data.meta);
-    } catch (error) {
+    } catch {
       showError('Error al cargar movimientos');
     } finally {
       setLoading(false);
@@ -43,7 +43,7 @@ export const useMovements = (initialFilters = {}) => {
     try {
       const response = await movementApi.getSummary(params);
       return response.data.data;
-    } catch (error) {
+    } catch {
       showError('Error al cargar resumen');
       return null;
     }

@@ -12,7 +12,7 @@ export const useAccounts = () => {
     try {
       const response = await accountApi.list(params);
       setAccounts(response.data.data);
-    } catch (error) {
+    } catch {
       showError('Error al cargar cuentas');
     } finally {
       setLoading(false);

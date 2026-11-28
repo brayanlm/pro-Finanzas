@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
 
-dotenv.config();
+// No sobrescribir variables ya definidas en el entorno (ej. test safety).
+// En `test`, NUNCA se carga el `.env` de producción; se usa `.env.test` opcional.
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+dotenv.config({ override: false, path: envFile });
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),

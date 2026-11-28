@@ -49,7 +49,7 @@ class MovementRepository extends BaseRepository {
 
   async getTotalByType(userId, type, startDate, endDate) {
     const result = await this.aggregate([
-      { $match: { userId: new Movement.Types.ObjectId(userId), type, date: { $gte: startDate, $lte: endDate }, deletedAt: null } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId), type, date: { $gte: startDate, $lte: endDate }, deletedAt: null } },
       { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } }
     ]);
     return result[0] || { total: 0, count: 0 };

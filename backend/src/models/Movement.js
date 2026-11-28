@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { roundMoney } from '../utils/money.js';
 
 const movementSchema = new mongoose.Schema({
   userId: {
@@ -23,6 +24,8 @@ const movementSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: [0.01, 'El importe debe ser mayor a 0'],
+    // Precisión monetaria: redondeo a 2 decimales; rechaza NaN/Infinity.
+    set: (v) => (v === undefined || v === null ? v : (Number.isFinite(Number(v)) ? roundMoney(v) : v)),
     validate: {
       validator: Number.isFinite,
       message: 'El importe debe ser un número válido'
@@ -50,6 +53,12 @@ const movementSchema = new mongoose.Schema({
     trim: true,
     maxlength: 1000
   },
+  // Anti-duplicado: clave opcional provista por el cliente; única por usuario si se envía.
+  idempotencyKey: {
+    type: String,
+    trim: true,
+    maxlength: 200
+  },
   isRecurring: {
     type: Boolean,
     default: false
@@ -75,6 +84,10 @@ movementSchema.index({ userId: 1, categoryId: 1, date: -1 });
 movementSchema.index({ userId: 1, accountId: 1, date: -1 });
 movementSchema.index({ userId: 1, deletedAt: 1, date: -1 });
 movementSchema.index({ userId: 1, type: 1, categoryId: 1, date: -1 });
+movementSchema.index(
+  { userId: 1, idempotencyKey: 1 },
+  { unique: true, partialFilterExpression: { idempotencyKey: { $type: 'string' }, deletedAt: null } }
+);
 
 movementSchema.virtual('category', {
   ref: 'Category',
@@ -95,8 +108,9 @@ movementSchema.query.active = function() {
 };
 
 movementSchema.statics.getMonthlySummary = async function(userId, year, month) {
-  const start = new Date(year, month - 1, 1);
-  const end = new Date(year, month, 0, 23, 59, 59, 999);
+  // Límites de mes en UTC para evitar desfases por zona horaria.
+  const start = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+  const end = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
   return this.aggregate([
     { $match: { userId: new mongoose.Types.ObjectId(userId), date: { $gte: start, $lte: end }, deletedAt: null } },

@@ -4,6 +4,16 @@ import app from './app.js';
 
 const config = getConfig();
 
+// No dejar el proceso en estado indefinido ante errores no capturados.
+process.on('unhandledRejection', (reason) => {
+  console.error('unhandledRejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('uncaughtException:', err?.message, err?.stack);
+  // Tras una excepción no capturada, salimos para que un supervisor reinicie.
+  process.exit(1);
+});
+
 const startServer = async () => {
   try {
     await connectDB();

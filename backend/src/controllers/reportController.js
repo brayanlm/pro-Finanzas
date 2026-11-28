@@ -103,33 +103,34 @@ const generatePDF = async (res, movements, options) => {
 };
 
 const generateExcel = async (res, movements, options) => {
-  const XLSX = await import('xlsx');
+  // `exceljs` (mantenido, sin `xlsx`/SheetJS vulnerable). No se incluye info de otros usuarios.
+  const { default: ExcelJS } = await import('exceljs');
 
-  const wb = XLSX.utils.book_new();
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Finanzas App';
 
   const income = movements.filter(m => m.type === 'income').reduce((sum, m) => sum + m.amount, 0);
   const expense = movements.filter(m => m.type === 'expense').reduce((sum, m) => sum + m.amount, 0);
   const balance = income - expense;
 
+  const summaryWs = wb.addWorksheet('Resumen');
   const summaryData = [
     ['Reporte Financiero'],
     [`Período: ${options.month}/${options.year}`],
     [`Generado: ${new Date().toLocaleDateString('es-ES')}`],
     [],
     ['Resumen'],
-    ['Ingresos totales', income.toFixed(2), 'EUR'],
-    ['Gastos totales', expense.toFixed(2), 'EUR'],
-    ['Balance', balance.toFixed(2), 'EUR'],
+    ['Ingresos totales', Number(income.toFixed(2)), 'EUR'],
+    ['Gastos totales', Number(expense.toFixed(2)), 'EUR'],
+    ['Balance', Number(balance.toFixed(2)), 'EUR'],
     []
   ];
-  const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
-  XLSX.utils.book_append_sheet(wb, summaryWs, 'Resumen');
+  summaryData.forEach(row => summaryWs.addRow(row));
 
-  const movementsData = [
-    ['Fecha', 'Tipo', 'Descripción', 'Categoría', 'Cuenta', 'Importe', 'Notas']
-  ];
+  const movementsWs = wb.addWorksheet('Movimientos');
+  movementsWs.addRow(['Fecha', 'Tipo', 'Descripción', 'Categoría', 'Cuenta', 'Importe', 'Notas']);
   movements.forEach(m => {
-    movementsData.push([
+    movementsWs.addRow([
       new Date(m.date).toLocaleDateString('es-ES'),
       m.type === 'income' ? 'Ingreso' : 'Gasto',
       m.description,
@@ -139,27 +140,28 @@ const generateExcel = async (res, movements, options) => {
       m.notes || ''
     ]);
   });
-  const movementsWs = XLSX.utils.aoa_to_sheet(movementsData);
-  XLSX.utils.book_append_sheet(wb, movementsWs, 'Movimientos');
 
+  const categoryWs = wb.addWorksheet('Por Categoría');
   const categoryMap = {};
   movements.filter(m => m.type === 'expense').forEach(m => {
     const catName = m.category?.name || 'Sin categoría';
     if (!categoryMap[catName]) categoryMap[catName] = 0;
     categoryMap[catName] += m.amount;
   });
-  const categoryData = [['Categoría', 'Total', 'Porcentaje']];
+  categoryWs.addRow(['Categoría', 'Total', 'Porcentaje']);
   Object.entries(categoryMap).sort((a, b) => b[1] - a[1]).forEach(([cat, total]) => {
-    categoryData.push([cat, total.toFixed(2), `${((total / expense) * 100).toFixed(1)}%`]);
+    categoryWs.addRow([
+      cat,
+      Number(total.toFixed(2)),
+      expense > 0 ? `${((total / expense) * 100).toFixed(1)}%` : '0.0%'
+    ]);
   });
-  const categoryWs = XLSX.utils.aoa_to_sheet(categoryData);
-  XLSX.utils.book_append_sheet(wb, categoryWs, 'Por Categoría');
 
-  const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  const buffer = await wb.xlsx.writeBuffer();
 
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', `attachment; filename="reporte-${options.year}-${String(options.month).padStart(2, '0')}.xlsx"`);
-  res.send(buffer);
+  res.send(Buffer.from(buffer));
 };
 
 export const getReportPreview = async (req, res, next) => {

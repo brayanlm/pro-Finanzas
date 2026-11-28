@@ -1,33 +1,31 @@
 import { cn } from '../../utils/format';
 import Button from './Button';
+import { Sparkles } from 'lucide-react';
 
-const EmptyState = ({ 
-  icon, 
-  title, 
-  description, 
-  action, 
+const EmptyState = ({
+  icon,
+  title,
+  description,
+  action,
   className = '',
-  illustration = true
+  illustration = true,
+  actionVariant = 'primary'
 }) => {
   return (
-    <div className={cn('flex flex-col items-center justify-center text-center py-12 px-4', className)}>
-      {illustration && icon && (
-        <div className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600">
-          {typeof icon === 'function' ? <icon className="w-full h-full" /> : icon}
+    <div className={cn('empty-state', className)}>
+      {illustration && (
+        <div className="w-20 h-20 rounded-3xl bg-gray-50 dark:bg-surfaceRaised/60 flex items-center justify-center text-gray-400 dark:text-gray-500 mb-5 ring-1 ring-border-light dark:ring-white/8">
+          {typeof icon === 'function' ? <icon className="w-9 h-9" /> : icon || <Sparkles className="w-9 h-9" aria-hidden="true" />}
         </div>
       )}
       {title && (
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-          {title}
-        </h3>
+        <h3 className="empty-state-title">{title}</h3>
       )}
       {description && (
-        <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm">
-          {description}
-        </p>
+        <p className="empty-state-desc">{description}</p>
       )}
       {action && (
-        <Button variant="primary" onClick={action.onClick}>
+        <Button variant={actionVariant} onClick={action.onClick} className="mt-5">
           {action.label}
         </Button>
       )}

@@ -1,14 +1,28 @@
 import dayjs from 'dayjs';
 
-export const formatDate = (date, format = 'DD/MM/YYYY') => {
+const pad = (n, len = 2) => String(n).padStart(len, '0');
+
+// Formato determinista en UTC (independiente de la zona horaria local),
+// evitando desfases de un día. Soporta tokens DD MM YYYY YY HH mm ss.
+const formatUtc = (date, format) => {
   if (!date) return '';
-  return dayjs(date).format(format);
+  const d = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(d.getTime())) return '';
+  const map = {
+    YYYY: String(d.getUTCFullYear()),
+    YY: pad(d.getUTCFullYear() % 100),
+    MM: pad(d.getUTCMonth() + 1),
+    DD: pad(d.getUTCDate()),
+    HH: pad(d.getUTCHours()),
+    mm: pad(d.getUTCMinutes()),
+    ss: pad(d.getUTCSeconds())
+  };
+  return String(format).replace(/YYYY|YY|MM|DD|HH|mm|ss/g, (token) => map[token] ?? token);
 };
 
-export const formatDateTime = (date, format = 'DD/MM/YYYY HH:mm') => {
-  if (!date) return '';
-  return dayjs(date).format(format);
-};
+export const formatDate = (date, format = 'DD/MM/YYYY') => formatUtc(date, format);
+
+export const formatDateTime = (date, format = 'DD/MM/YYYY HH:mm') => formatUtc(date, format);
 
 export const startOfMonth = (date = new Date()) => {
   return dayjs(date).startOf('month').toDate();
@@ -60,7 +74,24 @@ export const getLastNMonths = (n = 12) => {
 };
 
 export const isValidDate = (date) => {
-  return dayjs(date).isValid();
+  if (date === null || date === undefined || date === '') return false;
+  if (date instanceof Date) return !Number.isNaN(date.getTime());
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return false;
+  // Para cadenas ISO de fecha (YYYY-MM-DD) validar rangos reales (mes/día).
+  if (typeof date === 'string') {
+    const m = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) {
+      const [, y, mo, da] = m;
+      const year = Number(y);
+      const month = Number(mo);
+      const day = Number(da);
+      if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+      const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+      if (day > daysInMonth) return false;
+    }
+  }
+  return true;
 };
 
 export const parseDate = (dateString) => {

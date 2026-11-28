@@ -19,7 +19,7 @@ export const useBudgets = (month = null, year = null) => {
       ]);
       setBudgets(budgetsRes.data.data);
       setSummary(summaryRes.data.data);
-    } catch (error) {
+    } catch {
       showError('Error al cargar presupuestos');
     } finally {
       setLoading(false);

@@ -33,8 +33,14 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.get('/health/ready', (req, res) => {
-  res.json({ status: 'ready', timestamp: new Date().toISOString() });
+app.get('/health/ready', async (req, res) => {
+  const { default: mongoose } = await import('mongoose');
+  const dbReady = mongoose.connection.readyState === 1;
+  res.status(dbReady ? 200 : 503).json({
+    status: dbReady ? 'ready' : 'unavailable',
+    database: dbReady ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString()
+  });
 });
 
 setupRoutes(app);

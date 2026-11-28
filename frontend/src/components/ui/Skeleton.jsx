@@ -1,20 +1,21 @@
 import { cn } from '../../utils/format';
 
-const Skeleton = ({ 
-  variant = 'text', 
-  width = '100%', 
-  height, 
-  className = '', 
+const Skeleton = ({
+  variant = 'text',
+  width = '100%',
+  height,
+  className = '',
   count = 1,
-  ...props 
+  ...props
 }) => {
   const variants = {
-    text: 'h-4',
-    title: 'h-6 w-3/4',
-    card: 'h-32',
+    text: 'h-4 max-w-full',
+    title: 'h-6 w-3/4 rounded',
+    card: 'h-36',
     avatar: 'w-10 h-10 rounded-full',
-    button: 'h-10 w-24 rounded-lg',
-    tableRow: 'h-12'
+    button: 'h-11 w-28 rounded-lg',
+    tableRow: 'h-12',
+    stat: 'h-28'
   };
 
   const baseStyle = {
@@ -24,9 +25,9 @@ const Skeleton = ({
   };
 
   const skeletonItems = Array.from({ length: count }, (_, i) => (
-    <div 
-      key={i} 
-      className={cn('animate-pulse bg-gray-200 dark:bg-gray-700 rounded', className)} 
+    <div
+      key={i}
+      className={cn('skeleton-card', className)}
       style={baseStyle}
       {...props}
     />

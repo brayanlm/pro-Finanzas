@@ -1,12 +1,12 @@
 import { cn } from '../../utils/format';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
-const Pagination = ({ 
-  currentPage = 1, 
-  totalPages = 1, 
-  onPageChange, 
-  showPageSize = false, 
-  pageSize = 20, 
+const Pagination = ({
+  currentPage = 1,
+  totalPages = 1,
+  onPageChange,
+  showPageSize = false,
+  pageSize = 20,
   onPageSizeChange,
   className = '',
   total = 0
@@ -26,18 +26,40 @@ const Pagination = ({
     pages.push(i);
   }
 
+  const PageButton = ({ page, active, ariaLabel, children }) => (
+    <button
+      type="button"
+      onClick={() => onPageChange(page)}
+      className={cn(
+        'inline-flex items-center justify-center min-w-[2.25rem] px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150',
+        active
+          ? 'bg-primary-600 text-white shadow-sm'
+          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-surfaceRaised',
+        !active && 'active:scale-95'
+      )}
+      aria-label={ariaLabel}
+      aria-current={active ? 'page' : undefined}
+      disabled={active}
+    >
+      {children}
+    </button>
+  );
+
   return (
-    <nav className={cn('flex items-center justify-between', className)} aria-label="Paginación">
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          Página {currentPage} de {totalPages} ({total} total)
+    <nav className={cn('flex flex-col sm:flex-row sm:items-center justify-between gap-3', className)} aria-label="Paginación">
+      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <span className="font-medium text-gray-700 dark:text-gray-300">
+          Página {currentPage} de {totalPages}
         </span>
-        
+        {total > 0 && (
+          <span className="text-gray-400 dark:text-gray-500">· {total} registros</span>
+        )}
+
         {showPageSize && (
           <select
             value={pageSize}
             onChange={(e) => onPageSizeChange?.(parseInt(e.target.value))}
-            className="input w-auto py-1.5 text-sm"
+            className="input w-auto py-1.5 text-sm ml-2"
             aria-label="Elementos por página"
           >
             <option value={10}>10</option>
@@ -49,90 +71,41 @@ const Pagination = ({
       </div>
 
       <div className="flex items-center gap-1">
-        <button
-          onClick={() => onPageChange(1)}
-          disabled={currentPage === 1}
-          className={cn('btn-ghost p-2', currentPage === 1 && 'opacity-50 cursor-not-allowed')}
-          aria-label="Primera página"
-          aria-disabled={currentPage === 1}
-        >
-          <ChevronsLeft className="w-4 h-4" />
-        </button>
-        
-        <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className={cn('btn-ghost p-2', currentPage === 1 && 'opacity-50 cursor-not-allowed')}
-          aria-label="Página anterior"
-          aria-disabled={currentPage === 1}
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
+        <PageButton page={1} active={currentPage === 1} ariaLabel="Primera página">
+          <ChevronsLeft className="w-4 h-4" aria-hidden="true" />
+        </PageButton>
+
+        <PageButton page={currentPage - 1} active={currentPage === 1} ariaLabel="Página anterior">
+          <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+        </PageButton>
 
         {startPage > 1 && (
           <>
-            <button
-              onClick={() => onPageChange(1)}
-              className="btn-ghost px-3 py-1.5"
-              aria-label="Página 1"
-            >
-              1
-            </button>
-            {startPage > 2 && (
-              <span className="px-2 text-gray-400">...</span>
-            )}
+            <PageButton page={1} ariaLabel="Página 1">1</PageButton>
+            {startPage > 2 && <span className="px-2 text-gray-400 select-none">…</span>}
           </>
         )}
 
         {pages.map((page) => (
-          <button
-            key={page}
-            onClick={() => onPageChange(page)}
-            className={cn(
-              'btn-ghost px-3 py-1.5 min-w-[2.5rem]',
-              page === currentPage && 'bg-primary-600 text-white'
-            )}
-            aria-label={`Página ${page}`}
-            aria-current={page === currentPage ? 'page' : undefined}
-          >
+          <PageButton key={page} page={page} active={page === currentPage} ariaLabel={`Página ${page}`}>
             {page}
-          </button>
+          </PageButton>
         ))}
 
         {endPage < totalPages && (
           <>
-            {endPage < totalPages - 1 && (
-              <span className="px-2 text-gray-400">...</span>
-            )}
-            <button
-              onClick={() => onPageChange(totalPages)}
-              className="btn-ghost px-3 py-1.5"
-              aria-label={`Página ${totalPages}`}
-            >
-              {totalPages}
-            </button>
+            {endPage < totalPages - 1 && <span className="px-2 text-gray-400 select-none">…</span>}
+            <PageButton page={totalPages} ariaLabel={`Página ${totalPages}`}>{totalPages}</PageButton>
           </>
         )}
 
-        <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className={cn('btn-ghost p-2', currentPage === totalPages && 'opacity-50 cursor-not-allowed')}
-          aria-label="Página siguiente"
-          aria-disabled={currentPage === totalPages}
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
-        
-        <button
-          onClick={() => onPageChange(totalPages)}
-          disabled={currentPage === totalPages}
-          className={cn('btn-ghost p-2', currentPage === totalPages && 'opacity-50 cursor-not-allowed')}
-          aria-label="Última página"
-          aria-disabled={currentPage === totalPages}
-        >
-          <ChevronsRight className="w-4 h-4" />
-        </button>
+        <PageButton page={currentPage + 1} active={currentPage === totalPages} ariaLabel="Página siguiente">
+          <ChevronRight className="w-4 h-4" aria-hidden="true" />
+        </PageButton>
+
+        <PageButton page={totalPages} active={currentPage === totalPages} ariaLabel="Última página">
+          <ChevronsRight className="w-4 h-4" aria-hidden="true" />
+        </PageButton>
       </div>
     </nav>
   );

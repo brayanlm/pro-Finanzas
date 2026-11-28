@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { BaseRepository } from './BaseRepository.js';
 import Category from '../models/Category.js';
 
@@ -36,7 +37,7 @@ class CategoryRepository extends BaseRepository {
 
   async getWithMovementCount(userId, type = null) {
     const pipeline = [
-      { $match: { userId: new Category.Types.ObjectId(userId), deletedAt: null, ...(type && { type }) } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId), deletedAt: null, ...(type && { type }) } },
       { $lookup: { from: 'movements', localField: '_id', foreignField: 'categoryId', as: 'movements' } },
       { $addFields: { movementCount: { $size: '$movements' } } },
       { $project: { movements: 0 } },

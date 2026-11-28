@@ -1,10 +1,28 @@
 import { userRepository } from '../repositories/index.js';
 import Category from '../models/Category.js';
+import Account from '../models/Account.js';
 import { hashPassword, verifyPassword, validatePasswordStrength } from '../utils/password.js';
 import { generateAccessToken, generateResetToken } from '../utils/jwt.js';
 import { sendPasswordResetEmail } from '../utils/email.js';
 import { AppError } from '../utils/AppError.js';
 import crypto from 'crypto';
+
+// Nunca exponer campos sensibles; salida pública consistente.
+const toPublicUser = (u) => {
+  if (!u) return null;
+  if (typeof u.toPublicJSON === 'function') return u.toPublicJSON();
+  const {
+    passwordHash: _passwordHash,
+    emailVerificationToken: _evt,
+    passwordResetToken: _prt,
+    passwordResetExpires: _pre,
+    emailVerificationExpires: _eve,
+    __v: _v,
+    _id,
+    ...rest
+  } = u;
+  return { id: (_id ?? rest.id)?.toString?.() ?? rest.id, ...rest };
+};
 
 export const register = async (req, res, next) => {
   try {
@@ -35,12 +53,22 @@ export const register = async (req, res, next) => {
     const docs = defaults.map(c => ({ ...c, userId: user._id, isDefault: true }));
     await Category.insertMany(docs, { ordered: false });
 
+    // Cuenta inicial por defecto.
+    await Account.create({
+      userId: user._id,
+      name: 'Efectivo',
+      type: 'cash',
+      initialBalance: 0,
+      currentBalance: 0,
+      currency: user.preferences?.currency || 'EUR'
+    });
+
     const token = generateAccessToken(user);
 
     res.status(201).json({
       success: true,
       data: {
-        user: user.toPublicJSON(),
+        user: toPublicUser(user),
         token
       }
     });
@@ -71,12 +99,10 @@ export const login = async (req, res, next) => {
 
     const token = generateAccessToken(user);
 
-    const { passwordHash: _passwordHash, emailVerificationToken: _emailVerificationToken, passwordResetToken: _passwordResetToken, ...userData } = user;
-
     res.json({
       success: true,
       data: {
-        user: userData,
+        user: toPublicUser(user),
         token
       }
     });
@@ -109,7 +135,7 @@ export const updateProfile = async (req, res, next) => {
     if (preferences) updates.preferences = { ...req.user.preferences, ...preferences };
 
     const user = await userRepository.updateById(req.user.id, updates);
-    res.json({ success: true, data: user.toPublicJSON() });
+    res.json({ success: true, data: toPublicUser(user) });
   } catch (error) {
     next(error);
   }
@@ -153,7 +179,12 @@ export const forgotPassword = async (req, res, next) => {
     const expires = new Date(Date.now() + 60 * 60 * 1000);
 
     await userRepository.setPasswordResetToken(user._id, tokenHash, expires);
-    await sendPasswordResetEmail(user.email, resetToken, user.name);
+    try {
+      await sendPasswordResetEmail(user.email, resetToken, user.name);
+    } catch (emailError) {
+      // No revelar si el email existe ni filtrar errores SMTP; responder siempre genérico.
+      console.error('No se pudo enviar email de recuperación:', emailError?.message);
+    }
 
     res.json({ success: true, message: 'Si el email existe, recibirás instrucciones' });
   } catch (error) {

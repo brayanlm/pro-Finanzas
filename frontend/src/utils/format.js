@@ -6,8 +6,14 @@ export const formatCurrency = (amount, currency = 'EUR', locale = 'es-ES') => {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
+    useGrouping: true
   }).format(amount);
+};
+
+export const formatCompact = (num, locale = 'es-ES') => {
+  if (num === null || num === undefined) return '-';
+  return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(num);
 };
 
 export const formatNumber = (num, locale = 'es-ES') => {
@@ -19,18 +25,25 @@ export const formatDate = (date, format = 'DD/MM/YYYY') => {
   if (!date) return '-';
   const d = new Date(date);
   if (isNaN(d.getTime())) return '-';
-  
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  
+
+  // UTC para evitar desfases por zona horaria (la app trabaja con fechas UTC del backend).
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const year = d.getUTCFullYear();
+
   switch (format) {
     case 'DD/MM/YYYY': return `${day}/${month}/${year}`;
     case 'YYYY-MM-DD': return `${year}-${month}-${day}`;
     case 'MM/YYYY': return `${month}/${year}`;
     case 'DD/MM': return `${day}/${month}`;
-    default: return d.toLocaleDateString('es-ES');
+    default: return d.toLocaleDateString('es-ES', { timeZone: 'UTC' });
   }
+};
+
+export const formatMonth = (year, month) => {
+  const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const m = Number(month);
+  return `${months[m - 1] ?? m}/${year}`;
 };
 
 export const formatDateTime = (date) => {
@@ -48,8 +61,13 @@ export const formatDateTime = (date) => {
 
 export const formatPercent = (value, decimals = 1) => {
   if (value === null || value === undefined) return '-';
-  return `${value.toFixed(decimals)}%`;
+  const v = Number(value);
+  if (isNaN(v)) return '-';
+  return `${v.toFixed(decimals)}%`;
 };
+
+/* --- Color semántico para el tipo de movimiento/categoría --- */
+export const getTypeColorClass = (type) => (type === 'income' ? 'text-income-600 dark:text-income-400' : 'text-expense-600 dark:text-expense-400');
 
 export const getVariationColor = (variation) => {
   if (variation > 0) return 'text-income-600 dark:text-income-400';
@@ -65,10 +83,10 @@ export const getVariationIcon = (variation) => {
 
 export const getAlertLevelColor = (level) => {
   switch (level) {
-    case 'critical': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-    case 'danger': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
-    case 'warning': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
-    default: return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+    case 'critical': return 'text-expense-600 dark:text-expense-400';
+    case 'danger': return 'text-warning-600 dark:text-warning-400';
+    case 'warning': return 'text-warning-600 dark:text-warning-400';
+    default: return 'text-income-600 dark:text-income-400';
   }
 };
 
@@ -79,6 +97,14 @@ export const getAlertLevelLabel = (level) => {
     case 'warning': return 'Advertencia';
     default: return 'Normal';
   }
+};
+
+/* --- Color del indicador de progreso de presupuestos --- */
+export const getProgressColor = (percentage) => {
+  if (percentage >= 90) return 'bg-expense-500';
+  if (percentage >= 70) return 'bg-warning-500';
+  if (percentage > 0) return 'bg-income-500';
+  return 'bg-gray-300 dark:bg-surfaceRaised';
 };
 
 export const cn = (...classes) => clsx(classes);
@@ -107,6 +133,7 @@ export const getInitials = (name) => {
 };
 
 export const truncate = (str, length = 50) => {
+  if (!str) return '';
   if (str.length <= length) return str;
   return `${str.slice(0, length)}...`;
 };

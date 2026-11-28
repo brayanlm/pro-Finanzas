@@ -13,10 +13,12 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const ChartHorizontalBar = ({ 
-  data = [], 
-  labelKey = 'name', 
-  valueKey = 'total', 
+const TICK_FONT = { size: 11, weight: '500', family: "'Inter', sans-serif" };
+
+const ChartHorizontalBar = ({
+  data = [],
+  labelKey = 'name',
+  valueKey = 'total',
   colorKey = 'color',
   height = 300,
   className = '',
@@ -33,9 +35,9 @@ const ChartHorizontalBar = ({
     return {
       labels: sortedData.map(d => d[labelKey]),
       datasets: [{
-        label: 'Total',
+        label: 'Gasto',
         data: sortedData.map(d => d[valueKey] || 0),
-        backgroundColor: sortedData.map(d => d[colorKey] || '#6b7280'),
+        backgroundColor: sortedData.map(d => d[colorKey] || '#64748B'),
         borderRadius: 6,
         borderSkipped: false
       }]
@@ -46,13 +48,20 @@ const ChartHorizontalBar = ({
     responsive: true,
     maintainAspectRatio: false,
     indexAxis: 'y',
+    layout: { padding: { top: 16, right: 20, bottom: 0, left: 0 } },
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: 'rgba(17, 24, 39, 0.9)',
-        padding: 12,
-        titleFont: { size: 13 },
-        bodyFont: { size: 12 },
+        backgroundColor: '#11141B',
+        titleColor: '#FFFFFF',
+        bodyColor: '#E2E8F0',
+        borderColor: '#FFFFFF',
+        borderWidth: 0,
+        cornerRadius: 10,
+        boxPadding: 10,
+        padding: { x: 12, y: 10 },
+        titleFont: { size: 13, weight: '600', family: "'Inter', sans-serif" },
+        bodyFont: { size: 12, family: "'Inter', sans-serif" },
         callbacks: {
           label: (context) => `Gasto: ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(context.parsed.x)}`
         }
@@ -61,21 +70,26 @@ const ChartHorizontalBar = ({
     scales: {
       x: {
         beginAtZero: true,
-        grid: { color: 'rgba(0, 0, 0, 0.05)' },
-        ticks: { 
-          font: { size: 11 },
+        grid: { color: 'rgba(15,23,42,0.06)' },
+        ticks: {
+          color: '#94A3B8',
+          font: TICK_FONT,
           callback: (value) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 }).format(value)
         }
       },
       y: {
         grid: { display: false },
-        ticks: { font: { size: 11 } }
+        ticks: {
+          color: '#64748B',
+          font: TICK_FONT,
+          padding: 8
+        }
       }
     }
   }), []);
 
   return (
-    <div className={cn('w-full h-full min-h-0 overflow-hidden', className)} style={{ height }}>
+    <div className={cn('w-full h-full min-h-0', className)} style={{ height }}>
       <Bar data={chartData} options={options} />
     </div>
   );

@@ -8,30 +8,47 @@ import { useToast } from '../../context/ToastContext';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { cn } from '../../utils/format';
 
 const PasswordStrength = ({ password }) => {
   if (!password) return null;
-  
+
   const checks = [
     { label: 'Mínimo 8 caracteres', met: password.length >= 8 },
     { label: 'Mayúscula', met: /[A-Z]/.test(password) },
     { label: 'Minúscula', met: /[a-z]/.test(password) },
     { label: 'Número', met: /[0-9]/.test(password) },
-    { label: 'Símbolo', met: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?]/.test(password) },
+    { label: 'Símbolo', met: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?]/.test(password) }
   ];
 
+  const strength = checks.filter((c) => c.met).length;
+  const strengthLabel = ['Muy débil', 'Débil', 'Fuerte', 'Muy fuerte', 'Excelente'][Math.min(strength, 4)] || 'Excelente';
+
   return (
-    <div className="mt-2 space-y-1 text-xs">
-      {checks.map((check, i) => (
-        <div key={i} className="flex items-center gap-2">
-          <span className={check.met ? 'text-green-500' : 'text-gray-400'}>
-            {check.met ? '✓' : '○'}
-          </span>
-          <span className={check.met ? 'text-green-500' : 'text-gray-400'}>
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Fortaleza</span>
+        <span className="text-xs font-semibold" style={{ color: strength >= 3 ? '#16a34a' : strength >= 1 ? '#d97706' : '#dc2626' }}>
+          {strengthLabel} ({strength}/5)
+        </span>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-surfaceRaised">
+        <div
+          className="h-full rounded-full transition-all duration-300"
+          style={{
+            width: `${strength * 20}%`,
+            backgroundColor: strength >= 3 ? '#16a34a' : strength >= 1 ? '#d97706' : '#dc2626'
+          }}
+        />
+      </div>
+      <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+        {checks.map((check, i) => (
+          <span key={i} className={cn('inline-flex items-center gap-1.5 text-xs', check.met ? 'text-income-600 dark:text-income-400' : 'text-gray-400 dark:text-gray-500')}>
+            <span className={cn('w-1.5 h-1.5 rounded-full', check.met ? 'bg-income-500' : 'bg-gray-300 dark:bg-surfaceRaised')} />
             {check.label}
           </span>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };
@@ -73,7 +90,7 @@ const RegisterPage = () => {
       showSuccess('Cuenta creada correctamente');
       navigate('/dashboard');
     } catch (error) {
-      const message = error.response?.data?.message || 'Error al registrar';
+      const message = error.response?.data?.message || error.message || 'Error al registrar';
       showError(message);
     } finally {
       setSubmitting(false);
@@ -81,7 +98,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 animate-fade-in" aria-label="Formulario de registro">
       <Input
         label="Nombre completo"
         placeholder="Juan Pérez"
@@ -94,7 +111,7 @@ const RegisterPage = () => {
       <Input
         label="Email"
         type="email"
-        placeholder="usuario@ejemplo.com"
+        placeholder="tu@email.com"
         error={errors.email?.message}
         {...register('email')}
         required
@@ -137,7 +154,7 @@ const RegisterPage = () => {
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             className="text-gray-400 hover:text-gray-600"
-            aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            aria-label={showConfirmPassword ? 'Ocultar confirmación' : 'Mostrar confirmación'}
           >
             {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
@@ -150,7 +167,7 @@ const RegisterPage = () => {
 
       <p className="text-center text-sm text-gray-600 dark:text-gray-400">
         ¿Ya tienes cuenta?{' '}
-        <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
+        <Link to="/login" className="font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 transition-colors">
           Inicia sesión
         </Link>
       </p>

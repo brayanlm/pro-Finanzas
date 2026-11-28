@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,31 +7,41 @@ import { authApi } from '../../services/authApi';
 import { useToast } from '../../context/ToastContext';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import Card from '../../components/ui/Card';
 import { Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+
 
 const PasswordStrength = ({ password }) => {
   if (!password) return null;
-  
+
   const checks = [
     { label: 'Mínimo 8 caracteres', met: password.length >= 8 },
     { label: 'Mayúscula', met: /[A-Z]/.test(password) },
     { label: 'Minúscula', met: /[a-z]/.test(password) },
     { label: 'Número', met: /[0-9]/.test(password) },
-    { label: 'Símbolo', met: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?]/.test(password) },
+    { label: 'Símbolo', met: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?]/.test(password) }
   ];
 
+  const strength = checks.filter((c) => c.met).length;
+  const strengthLabel = ['Muy débil', 'Débil', 'Fuerte', 'Muy fuerte', 'Excelente'][Math.min(strength, 4)] || 'Excelente';
+
   return (
-    <div className="mt-2 space-y-1 text-xs">
-      {checks.map((check, i) => (
-        <div key={i} className="flex items-center gap-2">
-          <span className={check.met ? 'text-green-500' : 'text-gray-400'}>
-            {check.met ? '✓' : '○'}
-          </span>
-          <span className={check.met ? 'text-green-500' : 'text-gray-400'}>
-            {check.label}
-          </span>
-        </div>
-      ))}
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Fortaleza</span>
+        <span className="text-xs font-semibold" style={{ color: strength >= 3 ? '#16a34a' : strength >= 1 ? '#d97706' : '#dc2626' }}>
+          {strengthLabel} ({strength}/5)
+        </span>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-surfaceRaised">
+        <div
+          className="h-full rounded-full transition-all duration-300"
+          style={{
+            width: `${strength * 20}%`,
+            backgroundColor: strength >= 3 ? '#16a34a' : strength >= 1 ? '#d97706' : '#dc2626'
+          }}
+        />
+      </div>
     </div>
   );
 };
@@ -94,50 +104,46 @@ const ResetPasswordPage = () => {
 
   if (!validToken) {
     return (
-      <div className="text-center space-y-5">
-        <div className="w-16 h-16 mx-auto mb-4 bg-expense-100 dark:bg-expense-900/30 rounded-full flex items-center justify-center">
-          <svg className="w-8 h-8 text-expense-600 dark:text-expense-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+      <Card className="space-y-4 animate-pop-in text-center py-8">
+        <div className="w-14 h-14 mx-auto rounded-full bg-expense-50 text-expense-600 dark:bg-expense-900/20 flex items-center justify-center">
+          <Lock className="w-7 h-7" aria-hidden="true" />
         </div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Enlace inválido o expirado</h3>
-        <p className="text-gray-500 dark:text-gray-400">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50">Enlace inválido o expirado</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
           Este enlace de recuperación ha expirado o ya fue utilizado.
         </p>
-        <Link to="/forgot-password" className="btn-primary inline-flex items-center gap-1">
+        <Link to="/forgot-password" className="btn-primary mt-4 inline-flex items-center gap-1.5 justify-center">
           <ArrowLeft className="w-4 h-4" />
           Solicitar nuevo enlace
         </Link>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 animate-fade-in" aria-label="Formulario de restablecimiento de contraseña">
       <input type="hidden" {...register('token')} value={token} />
 
-      <div className="space-y-5">
-        <Input
-          label="Nueva contraseña"
-          type={showPassword ? 'text' : 'password'}
-          placeholder="••••••••"
-          error={errors.password?.message}
-          {...register('password')}
-          required
-          leftIcon={<Lock className="w-5 h-5" />}
-          rightIcon={
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="text-gray-400 hover:text-gray-600"
-              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-            >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-          }
-        />
-        <PasswordStrength password={password} />
-      </div>
+      <Input
+        label="Nueva contraseña"
+        type={showPassword ? 'text' : 'password'}
+        placeholder="••••••••"
+        error={errors.password?.message}
+        {...register('password')}
+        required
+        leftIcon={<Lock className="w-5 h-5" />}
+        rightIcon={
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="text-gray-400 hover:text-gray-600"
+            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          >
+            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+          </button>
+        }
+      />
+      <PasswordStrength password={password} />
 
       <Input
         label="Confirmar nueva contraseña"
@@ -152,7 +158,7 @@ const ResetPasswordPage = () => {
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             className="text-gray-400 hover:text-gray-600"
-            aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            aria-label={showConfirmPassword ? 'Ocultar confirmación' : 'Mostrar confirmación'}
           >
             {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
@@ -164,8 +170,8 @@ const ResetPasswordPage = () => {
       </Button>
 
       <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-        <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
-          <ArrowLeft className="w-4 h-4 inline" />
+        <Link to="/login" className="inline-flex items-center gap-1.5 font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
           Volver al login
         </Link>
       </p>

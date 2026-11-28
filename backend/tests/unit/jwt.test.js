@@ -45,7 +45,7 @@ describe('JWT Utils', () => {
 
     test('throws on expired token', () => {
       const expiredToken = generateToken({ sub: mockUser._id }, { expiresIn: '-1s' });
-      expect(() => verifyToken(expiredToken)).toThrow('TokenExpiredError');
+      expect(() => verifyToken(expiredToken)).toThrow(/expired/i);
     });
   });
 

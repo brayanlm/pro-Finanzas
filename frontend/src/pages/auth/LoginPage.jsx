@@ -35,7 +35,7 @@ const LoginPage = () => {
       await login(data.email, data.password, data.rememberMe);
       navigate('/dashboard');
     } catch (error) {
-      const message = error.response?.data?.message || 'Error al iniciar sesión';
+      const message = error.response?.data?.message || error.message || 'Error al iniciar sesión';
       showError(message);
     } finally {
       setSubmitting(false);
@@ -43,11 +43,11 @@ const LoginPage = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 animate-fade-in" aria-label="Formulario de inicio de sesión">
       <Input
         label="Email"
         type="email"
-        placeholder="usuario@ejemplo.com"
+        placeholder="tu@email.com"
         error={errors.email?.message}
         {...register('email')}
         required
@@ -74,18 +74,18 @@ const LoginPage = () => {
         }
       />
 
-      <div className="flex items-center justify-between">
-        <label className="flex items-center gap-2 cursor-pointer">
+      <div className="flex items-center justify-between gap-3">
+        <label className="inline-flex items-center gap-2.5 cursor-pointer text-sm text-gray-600 dark:text-gray-400 select-none">
           <input
             type="checkbox"
             {...register('rememberMe')}
-            className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            className="h-[1.125rem] w-[1.125rem] rounded border-gray-300 accent-primary-600 cursor-pointer"
           />
-          <span className="text-sm text-gray-600 dark:text-gray-400">Recordarme</span>
+          Recordarme
         </label>
         <Link
           to="/forgot-password"
-          className="text-sm text-primary-600 hover:text-primary-700"
+          className="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 transition-colors"
         >
           ¿Olvidaste tu contraseña?
         </Link>
@@ -95,9 +95,20 @@ const LoginPage = () => {
         Iniciar sesión
       </Button>
 
+      <div className="relative my-2">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-border-light dark:border-white/8" />
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="px-3 bg-surface-light dark:bg-surfaceRaised text-gray-500 dark:text-gray-400">
+            O
+          </span>
+        </div>
+      </div>
+
       <p className="text-center text-sm text-gray-600 dark:text-gray-400">
         ¿No tienes cuenta?{' '}
-        <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
+        <Link to="/register" className="font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 transition-colors">
           Regístrate
         </Link>
       </p>

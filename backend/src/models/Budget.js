@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { roundMoney } from '../utils/money.js';
 
 const budgetSchema = new mongoose.Schema({
   userId: {
@@ -25,15 +26,19 @@ const budgetSchema = new mongoose.Schema({
     min: 1,
     max: 12
   },
+  // `amount` = presupuesto asignado. 0 = sin límite definido. La validación de
+  // "montos positivos" para presupuestos explícitos vive en los validators de ruta.
   amount: {
     type: Number,
-    required: true,
-    min: [0.01, 'El presupuesto debe ser mayor a 0'],
+    default: 0,
+    min: [0, 'El presupuesto no puede ser negativo'],
+    set: (v) => (v === undefined || v === null ? v : (Number.isFinite(Number(v)) ? roundMoney(v) : v)),
     validate: { validator: Number.isFinite, message: 'Presupuesto debe ser un número válido' }
   },
   spent: {
     type: Number,
     default: 0,
+    set: (v) => (v === undefined || v === null ? v : (Number.isFinite(Number(v)) ? roundMoney(v) : v)),
     validate: { validator: Number.isFinite, message: 'Gastado debe ser un número válido' }
   },
   alertThresholds: {
@@ -94,19 +99,19 @@ budgetSchema.statics.recalculateSpent = async function(budgetId, session = null)
     { $group: { _id: null, total: { $sum: '$amount' } } }
   ]).session(session);
 
-  budget.spent = result[0]?.total || 0;
+  budget.spent = roundMoney(result[0]?.total || 0);
   await budget.save({ session });
   return budget;
 };
 
 budgetSchema.methods.incrementSpent = async function(amount, session = null) {
-  this.spent = (this.spent || 0) + amount;
+  this.spent = roundMoney((this.spent || 0) + Number(amount || 0));
   await this.save({ session });
   return this;
 };
 
 budgetSchema.methods.decrementSpent = async function(amount, session = null) {
-  this.spent = Math.max(0, (this.spent || 0) - amount);
+  this.spent = Math.max(0, roundMoney((this.spent || 0) - Number(amount || 0)));
   await this.save({ session });
   return this;
 };

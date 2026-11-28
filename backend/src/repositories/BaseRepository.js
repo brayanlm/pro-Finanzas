@@ -36,11 +36,11 @@ export class BaseRepository {
   }
 
   async updateById(id, data, options = {}) {
-    return this.model.findByIdAndUpdate(id, data, { new: true, runValidators: true, ...options }).lean();
+    return this.model.findByIdAndUpdate(id, data, { returnDocument: 'after', runValidators: true, ...options }).lean();
   }
 
   async updateOne(filter, data, options = {}) {
-    return this.model.findOneAndUpdate(filter, data, { new: true, runValidators: true, ...options }).lean();
+    return this.model.findOneAndUpdate(filter, data, { returnDocument: 'after', runValidators: true, ...options }).lean();
   }
 
   async deleteById(id, options = {}) {
@@ -52,7 +52,7 @@ export class BaseRepository {
   }
 
   async softDeleteById(id, session = null) {
-    return this.model.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true, session }).lean();
+    return this.model.findByIdAndUpdate(id, { deletedAt: new Date() }, { returnDocument: 'after', session }).lean();
   }
 
   async paginate(filter = {}, page = 1, limit = 20, options = {}) {

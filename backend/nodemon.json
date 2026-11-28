@@ -1,0 +1,38 @@
+{
+  "watch": [
+    "src",
+    "package.json",
+    "package-lock.json",
+    "nodemon.json",
+    "eslint.config.js"
+  ],
+  "ext": "js,mjs,cjs,json",
+  "ignore": [
+    "**/node_modules/**",
+    "node_modules/**",
+    "**/coverage/**",
+    "coverage/**",
+    "**/dist/**",
+    "dist/**",
+    "**/build/**",
+    "build/**",
+    "**/logs/**",
+    "logs/**",
+    "**/tmp/**",
+    "tmp/**",
+    "**/temp/**",
+    "temp/**",
+    "**/*.log",
+    "**/*.tmp",
+    "**/*.temp",
+    "**/*.swp",
+    "**/*.swo",
+    "**/*~",
+    "**/.DS_Store",
+    "**/Thumbs.db",
+    "**/.git/**",
+    "**/.gitignore"
+  ],
+  "delay": 500,
+  "restartable": "rs"
+}

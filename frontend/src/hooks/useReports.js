@@ -13,7 +13,7 @@ export const useReports = () => {
     try {
       const response = await reportApi.preview(filters);
       setPreview(response.data.data);
-    } catch (error) {
+    } catch {
       showError('Error al cargar vista previa');
     } finally {
       setLoading(false);
@@ -37,7 +37,7 @@ export const useReports = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       showSuccess(`Reporte exportado a ${format.toUpperCase()}`);
-    } catch (error) {
+    } catch {
       showError('Error al exportar reporte');
     } finally {
       setExporting(false);

@@ -13,7 +13,7 @@ export const useCategories = (type = null) => {
       const params = type ? { type } : {};
       const response = await categoryApi.list(params);
       setCategories(response.data.data);
-    } catch (error) {
+    } catch {
       showError('Error al cargar categorías');
     } finally {
       setLoading(false);

@@ -19,11 +19,16 @@ class BudgetRepository extends BaseRepository {
     return this.findOne({ userId, categoryId, year, month });
   }
 
-  async upsert(userId, categoryId, year, month, data) {
+  async upsert(userId, categoryId, year, month, data, session = null) {
     return this.model.findOneAndUpdate(
       { userId, categoryId, year, month },
-      { ...data, userId, categoryId, year, month },
-      { new: true, upsert: true, runValidators: true }
+      {
+        ...data,
+        userId, categoryId, year, month,
+        // Si el presupuesto no existe, se crea sin exceder la validación `amount`.
+        $setOnInsert: { amount: 0 }
+      },
+      { returnDocument: 'after', upsert: true, runValidators: true, session, setDefaultsOnInsert: true }
     ).lean();
   }
 

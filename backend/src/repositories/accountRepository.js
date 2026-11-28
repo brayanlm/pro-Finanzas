@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { BaseRepository } from './BaseRepository.js';
 import Account from '../models/Account.js';
 
@@ -28,16 +29,18 @@ class AccountRepository extends BaseRepository {
 
   async getWithBalance(userId) {
     const pipeline = [
-      { $match: { userId: new Account.Types.ObjectId(userId), deletedAt: null } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId), deletedAt: null } },
       { $lookup: { from: 'movements', localField: '_id', foreignField: 'accountId', as: 'movements' } },
       { $addFields: {
         calculatedBalance: {
-          $add: ['$initialBalance', {
-            $subtract: [
-              { $sum: { $map: { input: { $filter: { input: '$movements', cond: { $eq: ['$$this.type', 'income'] } } }, in: '$$this.amount' } } },
-              { $sum: { $map: { input: { $filter: { input: '$movements', cond: { $eq: ['$$this.type', 'expense'] } } }, in: '$$this.amount' } } }
-            ]
-          }]
+          $round: [
+            { $add: ['$initialBalance', {
+              $subtract: [
+                { $sum: { $map: { input: { $filter: { input: '$movements', cond: { $and: [{ $eq: ['$$this.type', 'income'] }, { $eq: ['$$this.deletedAt', null] }] } } }, in: '$$this.amount' } } },
+                { $sum: { $map: { input: { $filter: { input: '$movements', cond: { $and: [{ $eq: ['$$this.type', 'expense'] }, { $eq: ['$$this.deletedAt', null] }] } } }, in: '$$this.amount' } } }
+              ]
+            }]}, 2
+          ]
         }
       }},
       { $project: { movements: 0 } },

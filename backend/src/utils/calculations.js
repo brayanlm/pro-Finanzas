@@ -13,7 +13,8 @@ export const formatCurrency = (amount, currency = 'EUR', locale = 'es-ES') => {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
+    useGrouping: true
   }).format(amount);
 };
 

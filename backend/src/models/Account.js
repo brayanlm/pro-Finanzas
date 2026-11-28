@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { roundMoney } from '../utils/money.js';
 
 const ACCOUNT_TYPES = ['cash', 'bank', 'savings', 'debit_card', 'credit_card', 'other'];
 
@@ -25,6 +26,7 @@ const accountSchema = new mongoose.Schema({
     type: Number,
     required: true,
     default: 0,
+    set: (v) => (v === undefined || v === null ? v : (Number.isFinite(Number(v)) ? roundMoney(v) : v)),
     validate: {
       validator: Number.isFinite,
       message: 'Saldo inicial debe ser un número válido'
@@ -33,6 +35,7 @@ const accountSchema = new mongoose.Schema({
   currentBalance: {
     type: Number,
     default: 0,
+    set: (v) => (v === undefined || v === null ? v : (Number.isFinite(Number(v)) ? roundMoney(v) : v)),
     validate: {
       validator: Number.isFinite,
       message: 'Saldo actual debe ser un número válido'
@@ -72,6 +75,11 @@ const accountSchema = new mongoose.Schema({
     type: String,
     match: /^\d{4}$/,
     maxlength: 4
+  },
+  deletedAt: {
+    type: Date,
+    default: null,
+    index: true
   }
 }, {
   timestamps: true,
@@ -90,7 +98,7 @@ accountSchema.virtual('movements', {
 accountSchema.methods.recalculateBalance = async function(session = null) {
   const Movement = mongoose.model('Movement');
   const agg = await Movement.aggregate([
-    { $match: { accountId: this._id, deletedAt: null } },
+    { $match: { accountId: this._id, userId: this.userId, deletedAt: null } },
     { $group: {
       _id: null,
       income: { $sum: { $cond: [{ $eq: ['$type', 'income'] }, '$amount', 0] } },
@@ -99,7 +107,7 @@ accountSchema.methods.recalculateBalance = async function(session = null) {
     { $project: { balance: { $subtract: ['$income', '$expense'] } } }
   ]).session(session);
 
-  const calculatedBalance = this.initialBalance + (agg[0]?.balance || 0);
+  const calculatedBalance = roundMoney(this.initialBalance + (agg[0]?.balance || 0));
   this.currentBalance = calculatedBalance;
   await this.save({ session });
   return calculatedBalance;

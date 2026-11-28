@@ -1,11 +1,49 @@
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
-export const confirmDialog = async ({ 
-  title = '¿Estás seguro?', 
-  text, 
-  icon = 'warning', 
-  confirmText = 'Confirmar', 
+const modernStyles = {
+  popup: {
+    borderRadius: '1.25rem',
+    padding: '0 0.5rem',
+    fontFamily: "'Inter', sans-serif",
+    boxShadow: '0 24px 48px -8px rgb(0 0 0 / 0.28), 0 0 0 1px rgb(0 0 0 / 0.04)'
+  },
+  htmlContainerHighlighter: {
+    pointerEvents: 'none'
+  },
+  title: {
+    color: '#11141B',
+    fontSize: '1.125rem',
+    fontWeight: '600',
+    lineHeight: '1.5'
+  },
+  text: {
+    color: '#64748B',
+    fontSize: '0.9rem',
+    maxWidth: '420px'
+  },
+  icon: {
+    marginBottom: '0.25rem'
+  },
+  confirmButton: {
+    borderRadius: '0.75rem',
+    padding: '0.625rem 1.25rem',
+    fontSize: '0.85rem',
+    fontWeight: '600'
+  },
+  cancelButton: {
+    borderRadius: '0.75rem',
+    padding: '0.625rem 1.25rem',
+    fontSize: '0.85rem',
+    fontWeight: '500'
+  }
+};
+
+export const confirmDialog = async ({
+  title = '¿Estás seguro?',
+  text,
+  icon = 'warning',
+  confirmText = 'Confirmar',
   cancelText = 'Cancelar',
   confirmColor = '#4f46e5',
   showCancelButton = true
@@ -18,23 +56,19 @@ export const confirmDialog = async ({
     confirmButtonText: confirmText,
     cancelButtonText: cancelText,
     confirmButtonColor: confirmColor,
-    cancelButtonColor: '#6b7280',
+    cancelButtonColor: '#64748B',
     reverseButtons: true,
-    customClass: {
-      popup: 'rounded-xl',
-      confirmButton: 'rounded-lg px-4 py-2',
-      cancelButton: 'rounded-lg px-4 py-2'
-    },
-    buttonsStyling: false
+    buttonsStyling: false,
+    customClass: modernStyles
   });
 
   return result.isConfirmed;
 };
 
-export const alertDialog = async ({ 
-  title, 
-  text, 
-  icon = 'info', 
+export const alertDialog = async ({
+  title,
+  text,
+  icon = 'info',
   confirmText = 'Entendido',
   confirmColor = '#4f46e5'
 }) => {
@@ -44,17 +78,14 @@ export const alertDialog = async ({
     icon,
     confirmButtonText: confirmText,
     confirmButtonColor: confirmColor,
-    customClass: {
-      popup: 'rounded-xl',
-      confirmButton: 'rounded-lg px-4 py-2'
-    },
-    buttonsStyling: false
+    buttonsStyling: false,
+    customClass: { ...modernStyles, confirmButton: `${modernStyles.confirmButton} text-white bg-primary-600` }
   });
 };
 
-export const toast = ({ 
-  title, 
-  icon = 'success', 
+export const toast = ({
+  title,
+  icon = 'success',
   timer = 3000,
   position = 'top-end'
 }) => {
@@ -66,21 +97,24 @@ export const toast = ({
     toast: true,
     showConfirmButton: false,
     timerProgressBar: true,
+    buttonsStyling: false,
     customClass: {
-      popup: 'rounded-xl'
+      popup: `${modernStyles.popup} toast-container-custom`,
+      ...modernStyles
     }
   });
 };
 
-export const inputDialog = async ({ 
-  title, 
-  text, 
-  inputPlaceholder, 
+export const inputDialog = async ({
+  title,
+  text,
+  inputPlaceholder,
   inputValue = '',
-  confirmText = 'Guardar', 
+  confirmText = 'Guardar',
   cancelText = 'Cancelar',
   confirmColor = '#4f46e5',
-  validationMessage = 'Este campo es requerido'
+  validationMessage = 'Este campo es requerido',
+  showCancelButton = true
 }) => {
   const result = await Swal.fire({
     title,
@@ -88,21 +122,16 @@ export const inputDialog = async ({
     input: 'text',
     inputPlaceholder,
     inputValue,
-    showCancelButton: true,
+    showCancelButton,
     confirmButtonText: confirmText,
     cancelButtonText: cancelText,
     confirmButtonColor: confirmColor,
-    cancelButtonColor: '#6b7280',
+    cancelButtonColor: '#64748B',
     inputValidator: (value) => {
       if (!value) return validationMessage;
     },
-    customClass: {
-      popup: 'rounded-xl',
-      confirmButton: 'rounded-lg px-4 py-2',
-      cancelButton: 'rounded-lg px-4 py-2',
-      input: 'rounded-lg border-gray-300 dark:border-gray-600'
-    },
-    buttonsStyling: false
+    buttonsStyling: false,
+    customClass: { ...modernStyles, input: 'rounded-lg border-gray-300 dark:border-gray-600 py-2.5 px-3 text-sm' }
   });
 
   return result.value;

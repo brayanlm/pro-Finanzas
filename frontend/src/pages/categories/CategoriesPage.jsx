@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useCategories } from '../../hooks/useCategories';
 import { cn } from '../../utils/format';
-import { Plus, Edit, Trash2, Palette, Tag, Search, Filter, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Edit, Trash2, Tag, Search, X, Check } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
@@ -12,35 +12,53 @@ import Card from '../../components/ui/Card';
 import { categorySchema } from '../../validators/schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import * as lucideIcons from 'lucide-react';
-import { confirmDialog, toast } from '../../components/ui/ConfirmDialog';
+import { confirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
 import { ICONS } from '../../utils/constants';
+import { ICON_MAP, FALLBACK_ICON } from '../../utils/categoryIcons';
 
 const getIconComponent = (name) => {
-  const PascalName = name
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('');
-  return lucideIcons[PascalName] || lucideIcons.Tag;
+  return ICON_MAP[name] || FALLBACK_ICON;
 };
 
+const ColorPicker = ({ id, value, onChange, disabled }) => (
+  <div className="flex items-center gap-3">
+    <input
+      type="color"
+      id={id}
+      {...(onChange ? { value } : {})}
+      onChange={(e) => onChange?.(e.target.value)}
+      className={cn(
+        'h-10 w-10 cursor-pointer rounded-lg border border-border-light shadow-sm transition-transform duration-150 hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed',
+        !onChange && 'cursor-default'
+      )}
+      aria-label={`Seleccionar color (${value})`}
+      disabled={disabled}
+    />
+    <span
+      className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-border-light shadow-sm ring-2 ring-offset-1 ring-offset-surface-light"
+      style={{ backgroundColor: value }}
+      aria-hidden="true"
+    />
+    <span className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-[12rem]">{value}</span>
+  </div>
+);
+
 const CategoriesPage = () => {
-  const { 
-    categories, 
-    loading, 
-    createCategory, 
-    updateCategory, 
-    deleteCategory,
-    seedDefaults 
-  } = useCategories();
+  const { categories, loading, createCategory, updateCategory, deleteCategory, seedDefaults } = useCategories();
   const { showSuccess, showError } = useToast();
 
   const [activeTab, setActiveTab] = useState('expense');
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
+  const [search, setSearch] = useState('');
 
-  const filteredCategories = categories.filter(c => c.type === activeTab);
+  const searchTerm = search.trim().toLowerCase();
+  const filteredCategories = categories.filter(
+    (c) =>
+      c.type === activeTab &&
+      (!searchTerm || (c.name || '').toLowerCase().includes(searchTerm))
+  );
 
   const {
     register,
@@ -119,20 +137,33 @@ const CategoriesPage = () => {
       }
       setShowModal(false);
       setEditingCategory(null);
-    } catch (error) {
+    } catch {
       showError('Error al guardar');
     }
   };
 
   const columns = [
-    { key: 'name', header: 'Nombre', sortable: true },
-    { 
-      key: 'color', 
-      header: 'Color', 
-      sortable: false, 
+    {
+      key: 'name',
+      header: 'Nombre',
+      sortable: true,
+      render: (v, row) => (
+        <div className="flex items-center gap-3">
+          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: row.color }} aria-hidden="true" />
+          <div>
+            <p className="font-medium text-gray-900 dark:text-gray-50">{v}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{row.type === 'income' ? 'Ingreso' : 'Gasto'}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'color',
+      header: 'Color',
+      sortable: false,
       render: (v) => (
         <span
-          className="inline-block w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+          className="inline-block h-7 w-7 rounded-lg border border-border-light shadow-sm ring-2 ring-offset-1 ring-offset-surface-light"
           style={{ backgroundColor: v }}
           title={v}
           aria-label={`Color: ${v}`}
@@ -140,91 +171,116 @@ const CategoriesPage = () => {
         />
       )
     },
-    { 
-      key: 'icon', 
-      header: 'Icono', 
-      sortable: false, 
+    {
+      key: 'icon',
+      header: 'Icono',
+      sortable: false,
       render: (v) => {
         const Icon = getIconComponent(v);
         return <Icon className="w-6 h-6 text-primary-600 dark:text-primary-400" aria-label={v} />;
       }
     },
-    { 
-      key: 'isDefault', 
-      header: 'Por defecto', 
-      sortable: true, 
-      render: (v) => v ? <Badge variant="warning">Sí</Badge> : <Badge variant="default">No</Badge>
+    {
+      key: 'isDefault',
+      header: 'Por defecto',
+      sortable: true,
+      render: (v) => v ? <Badge variant="warning">Sí</Badge> : <Badge variant="success">No</Badge>
     },
-    { 
-      key: 'isActive', 
-      header: 'Estado', 
-      sortable: true, 
+    {
+      key: 'isActive',
+      header: 'Estado',
+      sortable: true,
       render: (v) => v ? <Badge variant="success">Activa</Badge> : <Badge variant="default">Inactiva</Badge>
     },
-    { 
-      key: 'actions', 
-      header: 'Acciones', 
-      sortable: false, 
-      align: 'center',
+    {
+      key: 'actions',
+      header: '',
+      sortable: false,
+      align: 'right',
       render: (_, row) => (
-        <div className="flex items-center justify-center gap-1">
+        <div className="flex items-center justify-end gap-1">
           {!row.isDefault && (
             <Button variant="ghost" size="sm" onClick={() => openEditModal(row)} aria-label="Editar">
-              <Edit className="w-4 h-4" />
+              <span className="btn-icon" aria-hidden="true"><Edit className="w-4 h-4" /></span>
             </Button>
           )}
           {!row.isDefault && (
             <Button variant="ghost" size="sm" onClick={() => handleDelete(row.id)} aria-label="Eliminar">
-              <Trash2 className="w-4 h-4 text-expense-600" />
+              <span className="btn-icon text-expense-600" aria-hidden="true"><Trash2 className="w-4 h-4" /></span>
             </Button>
           )}
-          {row.isDefault && (
-            <Badge variant="default" className="text-xs">Sistema</Badge>
-          )}
+          {row.isDefault && <Badge variant="default">Sistema</Badge>}
         </div>
       )
     }
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Categorías</h1>
-          <p className="text-gray-500 dark:text-gray-400">Organiza tus ingresos y gastos</p>
+          <h1 className="page-title">Categorías</h1>
+          <p className="page-subtitle">Organiza tus ingresos y gastos</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button variant="secondary" onClick={handleSeedDefaults} disabled={loading} className="w-full sm:w-auto">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <Button variant="secondary" onClick={handleSeedDefaults} disabled={loading}>
             <Tag className="w-4 h-4" />
             Categorías por defecto
           </Button>
-          <Button onClick={openCreateModal} className="w-full sm:w-auto">
+          <Button onClick={openCreateModal}>
             <Plus className="w-4 h-4" />
             Nueva categoría
           </Button>
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700" role="tablist" aria-label="Tipo de categorías">
-        {['expense', 'income'].map((type) => (
-          <button
-            key={type}
-            role="tab"
-            aria-selected={activeTab === type}
-            onClick={() => setActiveTab(type)}
-            className={cn(
-              'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
-              activeTab === type
-                ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-            )}
-          >
-            {type === 'expense' ? 'Gastos' : 'Ingresos'}
-          </button>
-        ))}
+      {/* Tabs */}
+      <div role="tablist" aria-label="Tipo de categorías">
+        <div className="flex gap-2 border-b border-border-light pb-1">
+          {['expense', 'income'].map((type) => (
+            <button
+              key={type}
+              role="tab"
+              aria-selected={activeTab === type}
+              onClick={() => setActiveTab(type)}
+              className={cn(
+                'relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200',
+                activeTab === type
+                  ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300'
+                  : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surfaceRaised'
+              )}
+            >
+              {type === 'expense' ? 'Gastos' : 'Ingresos'}
+              {activeTab === type && (
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary-600 dark:bg-primary-300" />
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <Card>
+      {/* Toolbar */}
+      <Card className="stat-card">
+        <div className="relative max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
+          <input
+            type="search"
+            placeholder="Buscar categoría..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="input pl-10 pr-4 py-2.5 text-sm"
+            aria-label="Buscar categoría"
+          />
+          {search && (
+            <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" onClick={() => setSearch('')} aria-label="Limpiar búsqueda">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </Card>
+
+      {/* Tabla */}
+      <Card className="stat-card overflow-hidden">
         <Table
           columns={columns}
           data={filteredCategories}
@@ -233,12 +289,13 @@ const CategoriesPage = () => {
         />
       </Card>
 
+      {/* Modal */}
       <Modal
         isOpen={showModal}
         onClose={() => { setShowModal(false); setEditingCategory(null); }}
         title={editingCategory ? 'Editar categoría' : 'Nueva categoría'}
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <Input
             label="Nombre"
             placeholder="Ej: Alimentación, Salario..."
@@ -257,39 +314,20 @@ const CategoriesPage = () => {
               {...register('type')}
               disabled={!!editingCategory}
             >
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-income-500" />
-                Ingreso
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-expense-500" />
-                Gasto
-              </div>
+              <span className="inline-flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-income-500" aria-hidden="true" />Ingreso</span>
+              <span className="inline-flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-expense-500" aria-hidden="true" />Gasto</span>
             </Select>
 
-            <div className="sm:col-span-2">
+            <div>
               <label className="label">Color</label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  {...register('color')}
-                  className="w-10 h-10 rounded-lg border border-gray-300 dark:border-gray-600 cursor-pointer"
-                  aria-label="Selector de color"
-                />
-                <span
-                  className="inline-block w-7 h-7 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm"
-                  style={{ backgroundColor: watch('color') }}
-                  aria-label={`Color: ${watch('color')}`}
-                  role="img"
-                />
-              </div>
+              <ColorPicker id="category-color" value={watch('color')} onChange={(v) => setValue('color', v)} />
             </div>
           </div>
 
-          <div className="sm:col-span-2">
+          <div>
             <label className="label">Icono</label>
-            <div className="flex flex-wrap gap-2">
-              {ICONS.map((icon) => {
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {ICONS.slice(0, 40).map((icon) => {
                 const Icon = getIconComponent(icon);
                 const isSelected = watch('icon') === icon;
                 return (
@@ -298,22 +336,23 @@ const CategoriesPage = () => {
                     type="button"
                     onClick={() => setValue('icon', icon)}
                     className={cn(
-                      'p-2 rounded-lg border-2 transition-colors',
+                      'relative flex items-center justify-center h-12 rounded-xl border-2 transition-all duration-200',
                       isSelected
-                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-primary-300'
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 scale-[1.04]'
+                        : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50 dark:border-surfaceRaised dark:hover:bg-surfaceRaised'
                     )}
                     aria-label={icon}
                     aria-pressed={isSelected}
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                    {isSelected && <Check className="absolute -top-1.5 -right-1.5 w-4 h-4 text-primary-500" aria-hidden="true" />}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border-light">
             <Button type="button" variant="secondary" onClick={() => { setShowModal(false); setEditingCategory(null); }}>
               Cancelar
             </Button>

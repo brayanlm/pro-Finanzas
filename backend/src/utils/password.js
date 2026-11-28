@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const BCRYPT_ROUNDS = 12;
 
@@ -22,9 +23,10 @@ export const validatePasswordStrength = (password) => {
 
 export const generateRandomPassword = (length = 16) => {
   const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+  // CSPRNG (no `Math.random`) y sin sesgo modulo `crypto.randomInt`.
   let password = '';
   for (let i = 0; i < length; i++) {
-    password += charset.charAt(Math.floor(Math.random() * charset.length));
+    password += charset.charAt(crypto.randomInt(0, charset.length));
   }
   return password;
 };

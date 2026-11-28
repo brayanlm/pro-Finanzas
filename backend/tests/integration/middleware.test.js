@@ -1,4 +1,6 @@
 import request from 'supertest';
+import mongoose from 'mongoose';
+import { safeCleanTestDatabase } from '../helpers/safeClean.js';
 import app from '../../src/app.js';
 import { connectDB, disconnectDB } from '../../src/config/database.js';
 import User from '../../src/models/User.js';
@@ -16,7 +18,7 @@ describe('Middleware Tests', () => {
   });
 
   beforeEach(async () => {
-    await User.deleteMany({});
+    await safeCleanTestDatabase(mongoose, ['users']);
 
     const userReg = await request(app)
       .post('/api/v1/auth/register')

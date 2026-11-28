@@ -1,5 +1,7 @@
 import { accountRepository } from '../repositories/index.js';
 import { AppError } from '../utils/AppError.js';
+import { roundMoney } from '../utils/money.js';
+import Account from '../models/Account.js';
 
 export const listAccounts = async (req, res, next) => {
   try {
@@ -48,12 +50,13 @@ export const createAccount = async (req, res, next) => {
       throw AppError.conflict('Ya existe una cuenta con ese nombre', { field: 'name' });
     }
 
+    const opening = roundMoney(Number(initialBalance) || 0);
     const account = await accountRepository.create({
       userId: req.user.id,
       name,
       type,
-      initialBalance: initialBalance || 0,
-      currentBalance: initialBalance || 0,
+      initialBalance: opening,
+      currentBalance: opening,
       currency: currency || 'EUR',
       creditLimit,
       bankName,
@@ -87,9 +90,10 @@ export const updateAccount = async (req, res, next) => {
     if (name) updates.name = name;
     if (type) updates.type = type;
     if (initialBalance !== undefined) {
-      updates.initialBalance = initialBalance;
-      const diff = initialBalance - account.initialBalance;
-      updates.currentBalance = account.currentBalance + diff;
+      const newInitial = roundMoney(Number(initialBalance));
+      updates.initialBalance = newInitial;
+      const diff = roundMoney(newInitial - account.initialBalance);
+      updates.currentBalance = roundMoney(account.currentBalance + diff);
     }
     if (currency) updates.currency = currency;
     if (creditLimit !== undefined) updates.creditLimit = creditLimit;
@@ -127,7 +131,7 @@ export const deleteAccount = async (req, res, next) => {
 
 export const recalculateBalance = async (req, res, next) => {
   try {
-    const account = await accountRepository.findByIdAndUser(req.params.id, req.user.id);
+    const account = await Account.findOne({ _id: req.params.id, userId: req.user.id, deletedAt: null });
     if (!account) {
       throw AppError.notFound('Cuenta no encontrada');
     }

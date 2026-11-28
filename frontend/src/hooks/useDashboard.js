@@ -13,7 +13,7 @@ export const useDashboard = () => {
     try {
       const response = await dashboardApi.getSummary();
       setSummary(response.data.data);
-    } catch (error) {
+    } catch {
       showError('Error al cargar resumen del dashboard');
     } finally {
       setLoading(false);
@@ -24,7 +24,7 @@ export const useDashboard = () => {
     try {
       const response = await dashboardApi.getCharts({ period });
       setCharts(response.data.data);
-    } catch (error) {
+    } catch {
       showError('Error al cargar gráficos');
     }
   }, [showError]);
